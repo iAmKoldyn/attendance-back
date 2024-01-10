@@ -5,38 +5,38 @@ import Attending from '../models/attending';
 import Role from '../models/role';
 
 const seed = async fastify => {
-  const users = await User.find({ firstname: 'Артур' });
+  const users = await User.find({ firstname: 'Astan' });
   if (users.length === 0) {
     const user1 = new User({
       firstname: 'Astan',
       lastname: 'Pataraya',
       middlename: 'Gennad',
       password: 'qwerty',
-      email: 'ap_gen'
+      email: 'ag_pat'
     });
     await user1.save();
     const user2 = new User({
-      firstname: 'Alex',
-      lastname: 'Zag',
-      middlename: 'Some',
+      firstname: 'Alexander',
+      lastname: 'Zagar',
+      middlename: 'Андреевич',
       password: 'qwerty1',
-      email: 'any'
+      email: 'alex_zagar'
     });
     await user2.save();
     const user3 = new User({
-      firstname: 'Naur',
-      lastname: 'Lox',
+      firstname: 'Вася',
+      lastname: 'Пупкин',
       middlename: null,
       password: 'abc123',
-      email: '3est3'
+      email: 'ganibbal'
     });
     await user3.save();
     const teacher = new User({
-      firstname: 'Учитель1',
+      firstname: 'Леша',
       lastname: 'Учитель',
       middlename: null,
       password: 'abc123',
-      email: 'test_учитель'
+      email: 'floppa_poppa'
     });
     await teacher.save();
     const admin = new User({
@@ -70,7 +70,7 @@ const seed = async fastify => {
     fastify.log.info('roles are created');
 
     const group = new Group({
-      name: 'К0711-21/1',
+      name: 'k0711-21/1',
       users: [user1, user2, user3]
     });
     await group.save();

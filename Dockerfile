@@ -3,12 +3,13 @@ FROM node:18
 RUN mkdir -p /usr/src/app/dist/
 WORKDIR /usr/src/app/
 
-COPY ./dist ./dist
+COPY ./dist /usr/src/app/dist/
 COPY ./package.json /usr/src/app/package.json
 COPY ./.env /usr/src/app/.env
 COPY ./package-lock.json /usr/src/app/package-lock.json
 
 RUN npm ci --omit=dev
+RUN npm install prom-client@13.1.0 --save
 
 EXPOSE 3002
 

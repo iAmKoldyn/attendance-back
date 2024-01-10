@@ -48,6 +48,7 @@
     "fastify": "^4.23.2",
     "mongoose": "^7.5.2",
     "qrcode": "^1.5.3",
+    "prom-client": "^13.2.0",
     "uuid": "^9.0.1"
   }
 }

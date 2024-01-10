@@ -14,6 +14,6 @@ scrape_configs:
     static_configs:
       - targets: ['node_exporter:9100']
 
-  - job_name: 'attendance-back-attendance-server-1'
+  - job_name: 'attendance_server'
     static_configs:
-      - targets: ['attendance-back-attendance-server-1:3002']
+      - targets: ['attendance-server:3002']

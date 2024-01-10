@@ -11,8 +11,25 @@ import { connect } from './connect';
 import seeds from './seed/seed';
 import { authenticateToken } from './utils/auth';
 
+import { Counter, register as promRegister } from 'prom-client';
+
+
 const fastify = Fastify({
   logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
+});
+
+const httpRequestCounter = new Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['route', 'method', 'status']
+});
+
+fastify.get('/metrics', async (request, reply) => {
+  console.log('Accessing /metrics endpoint');
+  const metrics = await promRegister.metrics();
+  const message = 'Metrics collected successfully.\n\n';
+  reply.header('Content-Type', promRegister.contentType);
+  reply.send(message + metrics);
 });
 
 fastify.register(fastifyJwt, {
@@ -28,10 +45,8 @@ fastify.register(cors, {
 });
 
 fastify.addHook('onRequest', (request, reply, done) => {
-  if (
-    authenticationConfig.excludedRoutes.includes(request.raw.url) ||
-    process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS == 'test'
-  ) {
+  if (authenticationConfig.excludedRoutes.includes(request.raw.url) ||
+    process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS === 'test') {
     done();
     return;
   }
