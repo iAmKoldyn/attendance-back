@@ -25,11 +25,9 @@ const httpRequestCounter = new Counter({
 });
 
 fastify.get('/metrics', async (request, reply) => {
-  console.log('Accessing /metrics endpoint');
   const metrics = await promRegister.metrics();
-  const message = 'Metrics collected successfully.\n\n';
   reply.header('Content-Type', promRegister.contentType);
-  reply.send(message + metrics);
+  reply.send(metrics);
 });
 
 fastify.register(fastifyJwt, {
@@ -45,7 +43,12 @@ fastify.register(cors, {
 });
 
 fastify.addHook('onRequest', (request, reply, done) => {
-  if (request.raw.url === '/metrics' || authenticationConfig.excludedRoutes.includes(request.raw.url) ||
+  if (request.url === '/metrics') {
+    done();
+    return;
+  }
+
+  if (authenticationConfig.excludedRoutes.includes(request.url) ||
     process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS === 'test') {
     done();
     return;
