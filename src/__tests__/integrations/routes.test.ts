@@ -669,7 +669,7 @@ describe('Test routes', () => {
             lastname: 'Test1',
             middlename: 'Test2',
             password: 'qwerty',
-            email: 'test_email'
+            email: 'test-email'
           });
           await user1.save();
         }
