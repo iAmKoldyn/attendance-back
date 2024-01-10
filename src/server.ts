@@ -45,7 +45,7 @@ fastify.register(cors, {
 });
 
 fastify.addHook('onRequest', (request, reply, done) => {
-  if (authenticationConfig.excludedRoutes.includes(request.raw.url) ||
+  if (request.raw.url === '/metrics' || authenticationConfig.excludedRoutes.includes(request.raw.url) ||
     process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS === 'test') {
     done();
     return;
