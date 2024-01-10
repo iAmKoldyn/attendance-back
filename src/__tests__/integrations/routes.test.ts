@@ -665,11 +665,11 @@ describe('Test routes', () => {
       it('correct', async () => {
         if (!(await User.findOne({ email: 'artur' }))) {
           const user1 = new User({
-            firstname: 'Артур',
-            lastname: 'Амантаев',
-            middlename: 'Махмудович',
+            firstname: 'Test',
+            lastname: 'Test1',
+            middlename: 'Test2',
             password: 'qwerty',
-            email: 'artur'
+            email: 'test_email'
           });
           await user1.save();
         }
