@@ -31,9 +31,45 @@ services:
       - attendance-net
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus # Shared Volume
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+      - "--storage.tsdb.min-block-duration=10m"
+      - "--storage.tsdb.max-block-duration=10m"
+    networks:
+      - attendance-net
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - attendance-net
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - attendance-net
+
 networks:
   attendance-net:
     driver: bridge
+    external: true
 
 volumes:
   sirius_volume:
+  prometheus-data: # Definition for the shared volume

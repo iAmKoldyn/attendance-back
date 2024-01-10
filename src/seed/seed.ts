@@ -8,24 +8,24 @@ const seed = async fastify => {
   const users = await User.find({ firstname: 'Артур' });
   if (users.length === 0) {
     const user1 = new User({
-      firstname: 'Test1',
-      lastname: 'Test1',
-      middlename: 'Test1',
+      firstname: 'Astan',
+      lastname: 'Pataraya',
+      middlename: 'Gennad',
       password: 'qwerty',
-      email: 'test1'
+      email: 'ap_gen'
     });
     await user1.save();
     const user2 = new User({
-      firstname: 'Test2',
-      lastname: 'Test2',
-      middlename: 'Test2',
+      firstname: 'Alex',
+      lastname: 'Zag',
+      middlename: 'Some',
       password: 'qwerty1',
-      email: 'test2'
+      email: 'any'
     });
     await user2.save();
     const user3 = new User({
-      firstname: 'Test3',
-      lastname: 'Test3',
+      firstname: 'Naur',
+      lastname: 'Lox',
       middlename: null,
       password: 'abc123',
       email: '3est3'
