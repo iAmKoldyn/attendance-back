@@ -65,6 +65,16 @@ services:
     networks:
       - shared_network
 
+  redis:
+    container_name: ${APP_NAME}-redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=6379
+
 volumes:
   sirius_volume:
   prometheus-data: # Definition for the shared volume
