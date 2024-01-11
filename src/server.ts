@@ -13,15 +13,19 @@ import { authenticateToken } from './utils/auth';
 
 import { Counter, register as promRegister } from 'prom-client';
 
+import { attendingRequestCounter, attendingRequestErrors, attendingRequestDuration } from './routes/attending';
+import { attendingsRequestCounter, attendingsRequestErrors, attendingsRequestDuration } from './routes/attendings';
+import { authRequestCounter, authRequestErrors, authRequestDuration } from './routes/auth';
+import { groupRequestCounter, groupRequestErrors, groupRequestDuration } from './routes/group';
+import { groupsRequestCounter, groupsRequestErrors, groupsRequestDuration } from './routes/groups';
+import { meetingRequestCounter, meetingRequestErrors, meetingRequestDuration } from './routes/meeting';
+import {meetingsRequestCounter, meetingsRequestErrors, meetingsRequestDuration} from './routes/meetings';
+import {teachersRequestCounter, teachersRequestErrors, teachersRequestDuration} from './routes/teachers';
+import {userRequestCounter, userRequestErrors, userRequestDuration} from './routes/user';
+import {usersRequestCounter, usersRequestErrors, usersRequestDuration} from './routes/users';
 
 const fastify = Fastify({
   logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
-});
-
-const httpRequestCounter = new Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['route', 'method', 'status']
 });
 
 fastify.get('/metrics', async (request, reply) => {
@@ -29,6 +33,46 @@ fastify.get('/metrics', async (request, reply) => {
   reply.header('Content-Type', promRegister.contentType);
   reply.send(metrics);
 });
+
+promRegister.registerMetric(authRequestCounter);
+promRegister.registerMetric(authRequestErrors);
+promRegister.registerMetric(authRequestDuration);
+
+promRegister.registerMetric(attendingRequestCounter);
+promRegister.registerMetric(attendingRequestErrors);
+promRegister.registerMetric(attendingRequestDuration);
+
+promRegister.registerMetric(attendingsRequestCounter);
+promRegister.registerMetric(attendingsRequestErrors);
+promRegister.registerMetric(attendingsRequestDuration);
+
+promRegister.registerMetric(groupRequestCounter);
+promRegister.registerMetric(groupRequestErrors);
+promRegister.registerMetric(groupRequestDuration);
+
+promRegister.registerMetric(groupsRequestCounter);
+promRegister.registerMetric(groupsRequestErrors);
+promRegister.registerMetric(groupsRequestDuration);
+
+promRegister.registerMetric(meetingRequestCounter);
+promRegister.registerMetric(meetingRequestErrors);
+promRegister.registerMetric(meetingRequestDuration);
+
+promRegister.registerMetric(meetingsRequestCounter);
+promRegister.registerMetric(meetingsRequestErrors);
+promRegister.registerMetric(meetingsRequestDuration);
+
+promRegister.registerMetric(teachersRequestCounter);
+promRegister.registerMetric(teachersRequestErrors);
+promRegister.registerMetric(teachersRequestDuration);
+
+promRegister.registerMetric(userRequestCounter);
+promRegister.registerMetric(userRequestErrors);
+promRegister.registerMetric(userRequestDuration);
+
+promRegister.registerMetric(usersRequestCounter);
+promRegister.registerMetric(usersRequestErrors);
+promRegister.registerMetric(usersRequestDuration);
 
 fastify.register(fastifyJwt, {
   secret: authenticationConfig.secretKey,
