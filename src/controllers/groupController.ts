@@ -1,4 +1,11 @@
 import Group from '../models/group';
+import { Histogram } from 'prom-client';
+
+export const dbOperationDurationGroup = new Histogram({
+  name: 'db_operation_duration_seconds',
+  help: 'Duration of database operations in seconds',
+  labelNames: ['operation', 'entity']
+});
 
 type Group = {
   name?: string;
@@ -7,36 +14,63 @@ type Group = {
 };
 
 export const createGroup = async data => {
+  const end = dbOperationDurationGroup.startTimer({ operation: 'create', entity: 'group' });
   const newGroup = new Group(data);
-  return await newGroup.save();
+  try {
+    return await newGroup.save();
+  } finally {
+    end();
+  }
 };
 
 export const getAllGroups = async () => {
-  return await Group.find({}, { _id: 0, __v: 0 });
+  const end = dbOperationDurationGroup.startTimer({ operation: 'readAll', entity: 'group' });
+  try {
+    return await Group.find({}, { _id: 0, __v: 0 });
+  } finally {
+    end();
+  }
 };
 
 export const getGroupById = async id => {
-  return await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
+  const end = dbOperationDurationGroup.startTimer({ operation: 'read', entity: 'group' });
+  try {
+    return await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
+  } finally {
+    end();
+  }
 };
 
 export const updateGroupById = async (id, body) => {
-  const group = await Group.findOne({ groupId: id });
+  const end = dbOperationDurationGroup.startTimer({ operation: 'update', entity: 'group' });
 
+  const group = await Group.findOne({ groupId: id });
   if (!group) {
+    end();
     return null;
   }
 
-  return await Group.findByIdAndUpdate(group._id, body, { new: true });
+  try {
+    return await Group.findByIdAndUpdate(group._id, body, { new: true });
+  } finally {
+    end();
+  }
 };
 
 export const deleteGroupById = async id => {
-  const group = await Group.findOne({ groupId: id });
+  const end = dbOperationDurationGroup.startTimer({ operation: 'delete', entity: 'group' });
 
+  const group = await Group.findOne({ groupId: id });
   if (!group) {
+    end();
     return null;
   }
 
-  return await Group.findByIdAndRemove(group._id);
+  try {
+    return await Group.findByIdAndRemove(group._id);
+  } finally {
+    end();
+  }
 };
 
 export const validateGroupData = groupData => {
