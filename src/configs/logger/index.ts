@@ -1,10 +1,15 @@
 export const loggerConfig = {
   development: {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname'
+    level: 'debug',
+    serializers: {
+      req (req) {
+        return {
+          method: req.method,
+          url: req.url,
+          hostname: req.hostname,
+          remoteAddress: req.ip,
+          remotePort: req.connection.remotePort
+        }
       }
     }
   },

@@ -3,11 +3,11 @@ import {
   getUserById,
   updateUserById,
   deleteUserById,
-  validateUserData,
   isEmailAlreadyInUse
 } from '../../controllers/userController';
 
 import { Counter, Histogram } from 'prom-client';
+import { createBodyJsonSchema, routeParamsJsonSchema, updateBodyJsonSchema } from './validation_schemas';
 
 export const userRequestCounter = new Counter({
   name: 'user_requests_total',
@@ -27,20 +27,18 @@ export const userRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function (fastify) {
-  fastify.post('/', async (request, reply) => {
+export default async function(fastify) {
+  fastify.post('/', {
+    schema: {
+      body: createBodyJsonSchema,
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = userRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
 
     try {
-      const validationErrors = validateUserData(request.body);
-      if (validationErrors) {
-        reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
-        userRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
-      }
-
-      const isEmailTaken = await isEmailAlreadyInUse(request.body.email);
-      if (isEmailTaken) {
+      const emailIsTaken = await isEmailAlreadyInUse(request.body.email);
+      if (emailIsTaken) {
         reply.status(409).send({ error: 'Email is already in use' });
         userRequestErrors.inc({ endpoint: '/', method: 'POST' });
         return;
@@ -58,45 +56,48 @@ export default async function (fastify) {
     }
   });
 
-  fastify.get('/:id', async (request, reply) => {
-    const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
-
-    try {
-      const userId = request.params.id;
-      const user = await getUserById(userId);
-
-      if (!user) {
-        reply.status(404).send({ error: 'User not found' });
-        userRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
-        return;
+  fastify.get('/:id',
+    {
+      schema: {
+        params: routeParamsJsonSchema
       }
+    }, async (request, reply) => {
+      const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
-      reply.status(200).send(user);
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      userRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
-      throw error;
-    } finally {
-      end();
-      userRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
+      try {
+        const userId = request.params.id;
+        const user = await getUserById(userId);
+
+        if (!user) {
+          reply.status(404).send({ error: 'User not found' });
+          userRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
+          return;
+        }
+
+        reply.status(200).send(user);
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
+        userRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
+        throw error;
+      } finally {
+        end();
+        userRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
+      }
+    });
+
+
+  fastify.put('/:id', {
+    schema: {
+      body: updateBodyJsonSchema,
+      params: routeParamsJsonSchema
     }
-  });
-
-
-  fastify.put('/:id', async (request, reply) => {
+  }, async (request, reply) => {
     const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
     try {
       const userId = request.params.id;
       const userBody = request.body;
-      const validationErrors = validateUserData(userBody);
       const isEmailTaken = await isEmailAlreadyInUse(userBody.email);
-
-      if (validationErrors || isEmailTaken) {
-        reply.status(validationErrors ? 400 : 409).send({ error: validationErrors ? 'Invalid Data' : 'Email is already in use', details: validationErrors });
-        userRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
-      }
 
       const updatedUser = await updateUserById(userId, userBody);
       if (!updatedUser) {
@@ -116,7 +117,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.delete('/:id', async (request, reply) => {
+  fastify.delete('/:id',  {
+    schema: {
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
     try {

@@ -5,10 +5,11 @@ import {
   generateRefreshToken,
   login
 } from '../../controllers/authController';
-import { createUser } from '../../controllers/userController';
+import { createUser, isEmailAlreadyInUse } from '../../controllers/userController';
 import User from '../../models/user';
 
 import { Counter, Histogram } from 'prom-client';
+import { loginBodyJsonSchema, refreshHeadersJsonSchema, registerBodyJsonSchema } from './validation_schemas';
 
 export const authRequestCounter = new Counter({
   name: 'auth_requests_total',
@@ -35,12 +36,18 @@ export const authRequestDuration = new Histogram({
 // });
 
 export default async function (fastify) {
-  fastify.post('/register', async (request, reply) => {
+  fastify.post('/register', {
+    schema: {
+      body: registerBodyJsonSchema
+    }
+  }, async (request, reply) => {
     const end = authRequestDuration.startTimer({ endpoint: '/register', method: 'POST' });
 
     try {
       const { email, lastname, firstname, middlename, password } = request.body;
-      // TODO: механизм проверки уникальности полей
+      if (await isEmailAlreadyInUse(email)) {
+        reply.status(422).send({ error: `User with email: ${email} already exists` });
+      }
       const newUser = await createUser({ email, lastname, firstname, middlename, password });
       const newAuthenticationTokens = await generateAuthenticationTokens(newUser, fastify);
 
@@ -60,7 +67,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', {
+    schema: {
+      body: loginBodyJsonSchema
+    }
+  }, async (request, reply) => {
     const end = authRequestDuration.startTimer({ endpoint: '/login', method: 'POST' });
 
     try {
@@ -91,7 +102,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.post('/refresh', async (request, reply) => {
+  fastify.post('/refresh', {
+    schema: {
+      headers: refreshHeadersJsonSchema
+    }
+  }, async (request, reply) => {
     const end = authRequestDuration.startTimer({ endpoint: '/refresh', method: 'POST' });
 
     try {

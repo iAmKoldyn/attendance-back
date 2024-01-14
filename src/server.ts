@@ -23,6 +23,13 @@ import {meetingsRequestCounter, meetingsRequestErrors, meetingsRequestDuration} 
 import {teachersRequestCounter, teachersRequestErrors, teachersRequestDuration} from './routes/teachers';
 import {userRequestCounter, userRequestErrors, userRequestDuration} from './routes/user';
 import {usersRequestCounter, usersRequestErrors, usersRequestDuration} from './routes/users';
+import { dbOperationDurationGroup } from './controllers/groupController';
+import { dbOperationDurationAuth } from './controllers/authController';
+import { dbOperationDurationAttending } from './controllers/attendingController';
+import { dbOperationDurationRole } from './controllers/roleController';
+import { dbOperationDurationTeacher } from './controllers/teacherController';
+import { dbOperationDurationUser } from './controllers/userController';
+import { dbOperationDurationMeeting } from './controllers/meetingController';
 
 const fastify = Fastify({
   logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
@@ -34,6 +41,7 @@ fastify.get('/metrics', async (request, reply) => {
   reply.send(metrics);
 });
 
+//routers
 promRegister.registerMetric(authRequestCounter);
 promRegister.registerMetric(authRequestErrors);
 promRegister.registerMetric(authRequestDuration);
@@ -74,6 +82,15 @@ promRegister.registerMetric(usersRequestCounter);
 promRegister.registerMetric(usersRequestErrors);
 promRegister.registerMetric(usersRequestDuration);
 
+//controllers
+promRegister.registerMetric(dbOperationDurationAttending);
+promRegister.registerMetric(dbOperationDurationAuth);
+promRegister.registerMetric(dbOperationDurationGroup);
+promRegister.registerMetric(dbOperationDurationMeeting)
+promRegister.registerMetric(dbOperationDurationRole)
+promRegister.registerMetric(dbOperationDurationTeacher)
+promRegister.registerMetric(dbOperationDurationUser)
+
 fastify.register(fastifyJwt, {
   secret: authenticationConfig.secretKey,
   sign: {
@@ -103,6 +120,10 @@ fastify.addHook('onRequest', (request, reply, done) => {
 
 fastify.setErrorHandler(function (error, request, reply) {
   fastify.log.error(error);
+  if (error.code == "FST_ERR_VALIDATION"){
+    const status = error.statusCode
+    reply.status(status).send({ error: error.message });
+  }
   reply.status(500).send({ error: 'Internal Server Error' });
 });
 

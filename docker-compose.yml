@@ -31,6 +31,7 @@ services:
       - 'host.docker.internal:host-gateway'
     networks:
       - shared_network
+    command: npm run up:prod
 
   prometheus:
     image: prom/prometheus:latest
@@ -81,5 +82,5 @@ volumes:
 
 networks:
   shared_network:
-#    driver: bridge
+    #    driver: bridge
     external: true
