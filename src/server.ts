@@ -120,6 +120,10 @@ fastify.addHook('onRequest', (request, reply, done) => {
 
 fastify.setErrorHandler(function (error, request, reply) {
   fastify.log.error(error);
+  if (error.code == "FST_ERR_VALIDATION"){
+    const status = error.statusCode
+    reply.status(status).send({ error: error.message });
+  }
   reply.status(500).send({ error: 'Internal Server Error' });
 });
 

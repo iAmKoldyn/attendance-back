@@ -3,12 +3,17 @@ import {
   createMeeting,
   getMeetingById,
   updateMeetingById,
-  deleteMeetingById,
-  validateMeetingData
+  deleteMeetingById
 } from '../../controllers/meetingController';
-import User from '../../models/user'
-import Group from '../../models/group'
+import User from '../../models/user';
+import Group from '../../models/group';
 import { Counter, Histogram } from 'prom-client';
+import {
+  createBodyJsonSchema, qrCodeHeadersJsonSchema,
+  queryStringJsonSchema,
+  routeParamsJsonSchema,
+  updateBodyJsonSchema
+} from './validation_schemas';
 
 export const meetingRequestCounter = new Counter({
   name: 'meeting_requests_total',
@@ -28,29 +33,29 @@ export const meetingRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function (fastify) {
-  fastify.post('/', async (request, reply) => {
+export default async function(fastify) {
+  fastify.post('/', {
+    schema: {
+      body: createBodyJsonSchema,
+      querystring: queryStringJsonSchema
+    }
+  }, async (request, reply) => {
     const end = meetingRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
 
     try {
-      const validationErrors = validateMeetingData(request.body);
-
-      if (validationErrors) {
-        reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
-        meetingRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
-      }
-
       const body = request.body;
-      body.timeFrom = new Date().toISOString();
+      const timeFrom = new Date(body.timeFrom).toISOString();
       body.teacherIds = body.teacherIds.concat(request.userId);
 
-      const teachers = await User.find({ userId: body.teacherIds });
-      const groups = await Group.find({ userId: body.groupIds });
-      const teacherIds = teachers.map(teacher => teacher._id);
-      const groupIds = groups.map(group => group._id);
+      const teacherIds = await User.find({ userId: body.teacherIds }).select('_id');
+      const groupIds = await Group.find({ groupId: body.groupIds }).select('_id');
 
-      const meeting = await createMeeting({ timeFrom: body.timeFrom, teachers: teacherIds, groups: groupIds });
+      const meeting = await createMeeting({
+        timeFrom: timeFrom,
+        timeTo: body.timeTo,
+        teachers: teacherIds,
+        groups: groupIds
+      });
       reply.status(201).send({ meetingId: meeting.meetingId });
     } catch (error) {
       reply.status(500).send({ error: 'Internal Server Error' });
@@ -62,7 +67,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.get('/:id', async (request, reply) => {
+  fastify.get('/:id', {
+    schema: {
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = meetingRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
     try {
@@ -86,19 +95,17 @@ export default async function (fastify) {
     }
   });
 
-  fastify.put('/:id', async (request, reply) => {
+  fastify.put('/:id', {
+    schema: {
+      body: updateBodyJsonSchema,
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = meetingRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
     try {
       const meetingId = request.params.id;
       const meetingBody = request.body;
-      const validationErrors = validateMeetingData(meetingBody);
-
-      if (validationErrors) {
-        reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
-        meetingRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
-      }
 
       const updatedMeeting = await updateMeetingById(meetingId, meetingBody);
       if (!updatedMeeting) {
@@ -118,7 +125,12 @@ export default async function (fastify) {
     }
   });
 
-  fastify.delete('/:id', async (request, reply) => {
+  fastify.delete('/:id', {
+    schema: {
+      body: createBodyJsonSchema,
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = meetingRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
     try {
@@ -142,7 +154,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.get('/QRCode', async (request, reply) => {
+  fastify.get('/QRCode',{
+    schema: {
+      headers: qrCodeHeadersJsonSchema,
+    }
+  }, async (request, reply) => {
     const end = meetingRequestDuration.startTimer({ endpoint: '/QRCode', method: 'GET' });
 
     try {
@@ -169,5 +185,4 @@ export default async function (fastify) {
       meetingRequestCounter.inc({ endpoint: '/QRCode', method: 'GET', status: reply.statusCode.toString() });
     }
   });
-
 }
