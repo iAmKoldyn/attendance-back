@@ -9,7 +9,6 @@ COPY ./.env /usr/src/app/.env
 COPY ./package-lock.json /usr/src/app/package-lock.json
 
 RUN npm ci --omit=dev
-RUN npm install prom-client@13.1.0 --save
 
 EXPOSE 3002
 

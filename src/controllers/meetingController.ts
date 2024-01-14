@@ -75,9 +75,3 @@ export const deleteMeetingById = async id => {
     end();
   }
 };
-
-export const validateMeetingData = meetingData => {
-  const errors: Meeting = {};
-
-  return Object.keys(errors).length === 0 ? null : errors;
-};

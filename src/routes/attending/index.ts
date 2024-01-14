@@ -2,14 +2,13 @@ import {
   createAttending,
   getAttendingById,
   updateAttendingById,
-  deleteAttendingById,
-  validateAttendingData,
-  isUserAlreadyInUse
+  deleteAttendingById
 } from '../../controllers/attendingController';
-import Meeting from '../../models/meeting'
-import User from '../../models/user'
+import Meeting from '../../models/meeting';
+import User from '../../models/user';
 
 import { Counter, Histogram } from 'prom-client';
+import { createBodyJsonSchema, routeParamsJsonSchema, updateBodyJsonSchema } from './validation_schemas';
 
 export const attendingRequestCounter = new Counter({
   name: 'attending_requests_total',
@@ -29,26 +28,22 @@ export const attendingRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function (fastify) {
-  fastify.post('/', async (request, reply) => {
+export default async function(fastify) {
+  fastify.post('/', {
+    schema: {
+      body: createBodyJsonSchema
+    }
+  }, async (request, reply) => {
     const end = attendingRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
 
     try {
-      const validationErrors = validateAttendingData(request.body);
-
-      if (validationErrors) {
-        reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
-        attendingRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
-      }
-
       const joined_at = new Date().toISOString();
       const user = await User.findOne({ userId: request.userId });
-      const meeting = await Meeting.findOne({ meetingId: request.body.meetingId});
+      const meeting = await Meeting.findOne({ meetingId: request.body.meetingId });
       const userId = user._id;
       const meetingId = meeting._id;
 
-      createAttending({joined_at: joined_at, user: userId, meeting: meetingId});
+      createAttending({ joined_at: joined_at, user: userId, meeting: meetingId });
       reply.status(201).send({ message: 'Created' });
     } catch (error) {
       reply.status(500).send({ error: 'Internal Server Error' });
@@ -60,7 +55,11 @@ export default async function (fastify) {
     }
   });
 
-  fastify.get('/:id', async (request, reply) => {
+  fastify.get('/:id', {
+    schema: {
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
     try {
@@ -84,20 +83,17 @@ export default async function (fastify) {
     }
   });
 
-  fastify.put('/:id', async (request, reply) => {
+  fastify.put('/:id', {
+    schema: {
+      body: updateBodyJsonSchema,
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
     try {
       const attendingId = request.params.id;
       const attendingBody = request.body;
-      const validationErrors = validateAttendingData(attendingBody);
-      const isUserTaken = await isUserAlreadyInUse(request.body.user);
-
-      if (validationErrors || isUserTaken) {
-        reply.status(validationErrors ? 400 : 409).send({ error: validationErrors ? 'Invalid Data' : 'User is already in use', details: validationErrors });
-        attendingRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
-      }
 
       const updatedAttending = await updateAttendingById(attendingId, attendingBody);
 
@@ -119,7 +115,11 @@ export default async function (fastify) {
   });
 
 
-  fastify.delete('/:id', async (request, reply) => {
+  fastify.delete('/:id', {
+    schema: {
+      params: routeParamsJsonSchema
+    }
+  }, async (request, reply) => {
     const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
     try {

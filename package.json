@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node .",
     "test": "jest",
-    "build": "tsc",
+    "build": "tsc -p .",
     "up:prod": "node dist/src/server",
     "up:dev": "nodemon",
     "deploy:stop": "docker compose down --remove-orphans",

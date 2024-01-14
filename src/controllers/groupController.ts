@@ -77,7 +77,7 @@ export const validateGroupData = groupData => {
   const errors: Group = {};
 
   if (!groupData.name) {
-    errors.name = 'Name is required';
+    errors.name = 'Controller Name is required';
   }
   // if (!groupData.meetings) {
   //   errors.meetings = 'Meetings is required';

@@ -77,39 +77,11 @@ export const deleteUserById = async (id: string) => {
   }
 };
 
-export const validateUserData = userData => {
-  const errors: User = {};
-
-  if (!userData.firstname) {
-    errors.firstname = 'First name is required';
-  }
-  if (!userData.lastname) {
-    errors.lastname = 'Last name is required';
-  }
-  if (!userData.middlename) {
-    errors.middlename = 'Middle name is required';
-  }
-  if (!userData.email) {
-    errors.email = 'Email is required';
-  }
-  if (!userData.password) {
-    errors.password = 'Password is required';
-  } else if (userData.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters long';
-  }
-
-  if (userData.email && userData.email.length < 5) {
-    errors.email = 'Email must be at least 5 characters long';
-  }
-
-  return Object.keys(errors).length === 0 ? null : errors;
-};
-
 export const isEmailAlreadyInUse = async (email: string) => {
   const end = dbOperationDurationUser.startTimer({ operation: 'checkEmail', entity: 'user' });
   try {
     const user = await User.findOne({ email });
-    return !!user;
+    return user != null;
   } finally {
     end();
   }
