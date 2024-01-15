@@ -48,12 +48,12 @@ export const queryStringJsonSchema = {
   properties: {
     userId: { type: 'string' }
   }
-}
+};
 
 export const qrCodeHeadersJsonSchema = {
   type: 'object',
   properties: {
-    'url': { type: 'string' }
+    url: { type: 'string' }
   },
   required: ['url']
-}
+};

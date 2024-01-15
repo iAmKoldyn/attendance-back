@@ -19,7 +19,7 @@ export const meetingsRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function (fastify) {
+export default async function (fastify): Promise<void> {
   fastify.get('/', async (request, reply) => {
     const end = meetingsRequestDuration.startTimer({ endpoint: '/', method: 'GET' });
 

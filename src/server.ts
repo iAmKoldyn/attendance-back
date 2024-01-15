@@ -11,7 +11,7 @@ import { connect } from './connect';
 import seeds from './seed/seed';
 import { authenticateToken } from './utils/auth';
 
-import { Counter, register as promRegister } from 'prom-client';
+import { register as promRegister } from 'prom-client';
 
 import { attendingRequestCounter, attendingRequestErrors, attendingRequestDuration } from './routes/attending';
 import { attendingsRequestCounter, attendingsRequestErrors, attendingsRequestDuration } from './routes/attendings';
@@ -19,10 +19,10 @@ import { authRequestCounter, authRequestErrors, authRequestDuration } from './ro
 import { groupRequestCounter, groupRequestErrors, groupRequestDuration } from './routes/group';
 import { groupsRequestCounter, groupsRequestErrors, groupsRequestDuration } from './routes/groups';
 import { meetingRequestCounter, meetingRequestErrors, meetingRequestDuration } from './routes/meeting';
-import {meetingsRequestCounter, meetingsRequestErrors, meetingsRequestDuration} from './routes/meetings';
-import {teachersRequestCounter, teachersRequestErrors, teachersRequestDuration} from './routes/teachers';
-import {userRequestCounter, userRequestErrors, userRequestDuration} from './routes/user';
-import {usersRequestCounter, usersRequestErrors, usersRequestDuration} from './routes/users';
+import { meetingsRequestCounter, meetingsRequestErrors, meetingsRequestDuration } from './routes/meetings';
+import { teachersRequestCounter, teachersRequestErrors, teachersRequestDuration } from './routes/teachers';
+import { userRequestCounter, userRequestErrors, userRequestDuration } from './routes/user';
+import { usersRequestCounter, usersRequestErrors, usersRequestDuration } from './routes/users';
 import { dbOperationDurationGroup } from './controllers/groupController';
 import { dbOperationDurationAuth } from './controllers/authController';
 import { dbOperationDurationAttending } from './controllers/attendingController';
@@ -35,7 +35,7 @@ const fastify = Fastify({
   logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
 });
 
-fastify.get('/metrics', async (request, reply) => {
+fastify.get('/metrics', async (_request, reply) => {
   const metrics = await promRegister.metrics();
   reply.header('Content-Type', promRegister.contentType);
   reply.send(metrics);
@@ -86,10 +86,10 @@ promRegister.registerMetric(usersRequestDuration);
 promRegister.registerMetric(dbOperationDurationAttending);
 promRegister.registerMetric(dbOperationDurationAuth);
 promRegister.registerMetric(dbOperationDurationGroup);
-promRegister.registerMetric(dbOperationDurationMeeting)
-promRegister.registerMetric(dbOperationDurationRole)
-promRegister.registerMetric(dbOperationDurationTeacher)
-promRegister.registerMetric(dbOperationDurationUser)
+promRegister.registerMetric(dbOperationDurationMeeting);
+promRegister.registerMetric(dbOperationDurationRole);
+promRegister.registerMetric(dbOperationDurationTeacher);
+promRegister.registerMetric(dbOperationDurationUser);
 
 fastify.register(fastifyJwt, {
   secret: authenticationConfig.secretKey,
@@ -109,8 +109,10 @@ fastify.addHook('onRequest', (request, reply, done) => {
     return;
   }
 
-  if (authenticationConfig.excludedRoutes.includes(request.url) ||
-    process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS === 'test') {
+  if (
+    authenticationConfig.excludedRoutes.includes(request.url) ||
+    process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS === 'test'
+  ) {
     done();
     return;
   }
@@ -118,22 +120,21 @@ fastify.addHook('onRequest', (request, reply, done) => {
   authenticateToken(request, reply, done, fastify);
 });
 
-fastify.setErrorHandler(function (error, request, reply) {
+fastify.setErrorHandler(function (error, _request, reply) {
   fastify.log.error(error);
-  if (error.code == "FST_ERR_VALIDATION"){
-    const status = error.statusCode
+  if (error.code == 'FST_ERR_VALIDATION') {
+    const status = error.statusCode;
     reply.status(status).send({ error: error.message });
   }
   reply.status(500).send({ error: 'Internal Server Error' });
 });
 
-const start = () => {
+const start = async (): Promise<void> => {
   try {
-    fastify.listen({
+    await fastify.listen({
       port: Number(process.env.SIRIUS_X_ATTENDANCE_PORT) || 3002,
       host: '0.0.0.0'
     });
-
     fastify.log.info(`listening on port ${Number(process.env.SIRIUS_X_ATTENDANCE_PORT) || 3002}`);
   } catch (err) {
     fastify.log.error(err);
@@ -145,9 +146,15 @@ start();
 
 const getDisconnectFromDB = connect(fastify);
 
-seeds(fastify);
+seeds(fastify)
+  .then(() => {
+    fastify.log.info('Seeding completed');
+  })
+  .catch(err => {
+    fastify.log.error(err);
+  });
 
-const graceFulShutDown = async () => {
+const graceFulShutDown = async (): Promise<string> => {
   await fastify.close();
   const disconnectFromDB = await getDisconnectFromDB;
   await disconnectFromDB();
@@ -161,7 +168,7 @@ fastify.register(autoload, {
   dir: path.join(__dirname, 'routes')
 });
 
-fastify.get('/hc', (req, rep) => {
+fastify.get('/hc', () => {
   return { ok: true, engine: 'fastify' };
 });
 

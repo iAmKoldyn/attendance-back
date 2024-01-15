@@ -4,7 +4,7 @@ import Meeting from '../models/meeting';
 import Attending from '../models/attending';
 import Role from '../models/role';
 
-const seed = async fastify => {
+const seed = async (fastify): Promise<void> => {
   const users = await User.find({ firstname: 'Astan' });
   if (users.length === 0) {
     const user1 = new User({

@@ -1,10 +1,9 @@
 import {
-  createAttending,
   getAllAttendings,
   getAttendingById,
   updateAttendingById,
   deleteAttendingById
-} from '../../controllers/attendingController'; 
+} from '../../controllers/attendingController';
 import Attending from '../../models/attending';
 
 jest.mock('../../models/attending', () => ({
@@ -56,8 +55,7 @@ describe('Attending API functions', () => {
   describe('updateAttendingById', () => {
     it('should update a attending by ID', async () => {
       const attendingId = 'someAttendingId';
-      const updatedData = {
-      };
+      const updatedData = {};
 
       await updateAttendingById(attendingId, updatedData);
 

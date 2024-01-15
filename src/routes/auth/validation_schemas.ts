@@ -8,7 +8,7 @@ export const registerBodyJsonSchema = {
     middlename: { type: 'string' },
     password: { type: 'string' }
   }
-}
+};
 
 export const loginBodyJsonSchema = {
   type: 'object',
@@ -17,12 +17,12 @@ export const loginBodyJsonSchema = {
     email: { type: 'string' },
     password: { type: 'string' }
   }
-}
+};
 
 export const refreshHeadersJsonSchema = {
   type: 'object',
   properties: {
-    'refreshToken': { type: 'string' }
+    refreshToken: { type: 'string' }
   },
   required: ['refreshToken']
-}
+};

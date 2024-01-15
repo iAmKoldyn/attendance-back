@@ -27,41 +27,47 @@ export const userRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function(fastify) {
-  fastify.post('/', {
-    schema: {
-      body: createBodyJsonSchema,
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = userRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
-
-    try {
-      const emailIsTaken = await isEmailAlreadyInUse(request.body.email);
-      if (emailIsTaken) {
-        reply.status(409).send({ error: 'Email is already in use' });
-        userRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
+export default async function (fastify): Promise<void> {
+  fastify.post(
+    '/',
+    {
+      schema: {
+        body: createBodyJsonSchema,
+        params: routeParamsJsonSchema
       }
+    },
+    async (request, reply) => {
+      const end = userRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
 
-      createUser(request.body);
-      reply.status(201).send({ message: 'Created' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      userRequestErrors.inc({ endpoint: '/', method: 'POST' });
-      throw error;
-    } finally {
-      end();
-      userRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
+      try {
+        const emailIsTaken = await isEmailAlreadyInUse(request.body.email);
+        if (emailIsTaken) {
+          reply.status(409).send({ error: 'Email is already in use' });
+          userRequestErrors.inc({ endpoint: '/', method: 'POST' });
+          return;
+        }
+
+        createUser(request.body);
+        reply.status(201).send({ message: 'Created' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
+        userRequestErrors.inc({ endpoint: '/', method: 'POST' });
+        throw error;
+      } finally {
+        end();
+        userRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
+      }
     }
-  });
+  );
 
-  fastify.get('/:id',
+  fastify.get(
+    '/:id',
     {
       schema: {
         params: routeParamsJsonSchema
       }
-    }, async (request, reply) => {
+    },
+    async (request, reply) => {
       const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
       try {
@@ -83,65 +89,72 @@ export default async function(fastify) {
         end();
         userRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
       }
-    });
-
-
-  fastify.put('/:id', {
-    schema: {
-      body: updateBodyJsonSchema,
-      params: routeParamsJsonSchema
     }
-  }, async (request, reply) => {
-    const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
+  );
 
-    try {
-      const userId = request.params.id;
-      const userBody = request.body;
-      const isEmailTaken = await isEmailAlreadyInUse(userBody.email);
+  fastify.put(
+    '/:id',
+    {
+      schema: {
+        body: updateBodyJsonSchema,
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
-      const updatedUser = await updateUserById(userId, userBody);
-      if (!updatedUser) {
-        reply.status(404).send({ error: 'User not found' });
+      try {
+        const userId = request.params.id;
+        const userBody = request.body;
+        await isEmailAlreadyInUse(userBody.email);
+        const updatedUser = await updateUserById(userId, userBody);
+        if (!updatedUser) {
+          reply.status(404).send({ error: 'User not found' });
+          userRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
+          return;
+        }
+
+        reply.status(200).send(updatedUser);
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         userRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
+        throw error;
+      } finally {
+        end();
+        userRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send(updatedUser);
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      userRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-      throw error;
-    } finally {
-      end();
-      userRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
     }
-  });
+  );
 
-  fastify.delete('/:id',  {
-    schema: {
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
+  fastify.delete(
+    '/:id',
+    {
+      schema: {
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = userRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
-    try {
-      const userId = request.params.id;
-      const deletedUser = await deleteUserById(userId);
+      try {
+        const userId = request.params.id;
+        const deletedUser = await deleteUserById(userId);
 
-      if (!deletedUser) {
-        reply.status(404).send({ error: 'User not found' });
+        if (!deletedUser) {
+          reply.status(404).send({ error: 'User not found' });
+          userRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
+          return;
+        }
+
+        reply.status(200).send({ message: 'Deleted' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         userRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-        return;
+        throw error;
+      } finally {
+        end();
+        userRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send({ message: 'Deleted' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      userRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-      throw error;
-    } finally {
-      end();
-      userRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
     }
-  });
+  );
 }

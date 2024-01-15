@@ -4,7 +4,7 @@ export const createBodyJsonSchema = {
   properties: {
     meetingId: { type: 'string' }
   }
-}
+};
 
 export const updateBodyJsonSchema = {
   type: 'object',
@@ -12,7 +12,7 @@ export const updateBodyJsonSchema = {
   properties: {
     meetingId: { type: 'string' }
   }
-}
+};
 
 export const routeParamsJsonSchema = {
   type: 'object',
@@ -20,4 +20,4 @@ export const routeParamsJsonSchema = {
   properties: {
     id: { type: 'string' }
   }
-}
+};

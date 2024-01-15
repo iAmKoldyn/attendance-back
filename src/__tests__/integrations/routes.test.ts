@@ -1,10 +1,8 @@
-import request from 'supertest';
 import app from '../../server';
 import User from '../../models/user';
 import Attending from '../../models/attending';
 import Group from '../../models/group';
 import Meeting from '../../models/meeting';
-import { getAllUsers } from '../../controllers/userController';
 
 describe('Test routes', () => {
   describe('healthcheck', () => {
@@ -116,7 +114,7 @@ describe('Test routes', () => {
             middlename: 'Test',
             password: 'testtesttest',
             email: 'testtest-'
-          })
+          });
         } else {
           await User.findByIdAndUpdate(user._id, { email: 'testtest-' }, { new: true });
         }
@@ -265,7 +263,7 @@ describe('Test routes', () => {
             userId: null,
             joined_at: new Date(2023, 9, 22, 18, 30, 11)
           });
-          await attending.save()
+          await attending.save();
         } else {
           await Attending.findByIdAndUpdate(attending._id, { userId: null }, { new: true });
         }
@@ -307,7 +305,7 @@ describe('Test routes', () => {
             userId: null,
             joined_at: new Date(2023, 9, 22, 18, 30, 12)
           });
-          await attending.save()
+          await attending.save();
         }
         const id = attending.attendingId;
         const response = await app.inject({
@@ -404,7 +402,7 @@ describe('Test routes', () => {
             name: 'af1',
             usersIds: [userId]
           });
-          await group.save()
+          await group.save();
         } else {
           await Group.findByIdAndUpdate(group._id, { name: 'af1' }, { new: true });
         }
@@ -443,7 +441,7 @@ describe('Test routes', () => {
             name: 'af3',
             usersIds: [userId]
           });
-          await group.save()
+          await group.save();
         }
         const response = await app.inject({
           method: 'DELETE',
@@ -540,7 +538,7 @@ describe('Test routes', () => {
       it('correct', async () => {
         const authorId = (await User.findOne()).userId;
         const groupId = (await Group.findOne()).groupId;
-  
+
         let meeting = await Meeting.findOne({ title: 'JS разработка 20' });
         if (!meeting) {
           meeting = new Meeting({
@@ -550,7 +548,7 @@ describe('Test routes', () => {
             authorId: authorId,
             groupId: groupId
           });
-          await meeting.save()
+          await meeting.save();
         } else {
           await Meeting.findByIdAndUpdate(meeting._id, { title: 'JS разработка 2' }, { new: true });
         }
@@ -600,7 +598,7 @@ describe('Test routes', () => {
             authorId: authorId,
             groupId: groupId
           });
-          await meeting.save()
+          await meeting.save();
         }
         const response = await app.inject({
           method: 'DELETE',

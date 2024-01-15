@@ -19,7 +19,7 @@ export const teachersRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function (fastify) {
+export default async function (fastify): Promise<void> {
   fastify.get('/', async (request, reply) => {
     const end = teachersRequestDuration.startTimer({ endpoint: '/', method: 'GET' });
 

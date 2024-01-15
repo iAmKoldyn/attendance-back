@@ -1,7 +1,4 @@
-import User from '../../models/user';
-import { dbOperationDurationUser } from '../../controllers/userController';
-
-export const authenticateToken = async (request, reply, done, fastify) => {
+export const authenticateToken = async (request, reply, done, fastify): Promise<string> => {
   try {
     const token = request.headers.authorization;
 
