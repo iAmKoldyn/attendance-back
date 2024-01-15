@@ -21,7 +21,7 @@
 Из корневой директории запустите `npm run build `, после успешного билда, соберите Docker-контейнеры.
 
 ```bash
-docker-compose up -d
+docker-compose up --build
 ```
 
 1. **Ожидание Загрузки Docker**:
