@@ -1,6 +1,7 @@
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
+// import * as redis from "redis";
 import 'dotenv/config';
 import Fastify from 'fastify';
 import path from 'node:path';
@@ -32,8 +33,36 @@ import { dbOperationDurationUser } from './controllers/userController';
 import { dbOperationDurationMeeting } from './controllers/meetingController';
 
 const fastify = Fastify({
-  logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
+  logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true,
+  pluginTimeout: 20000
 });
+
+// import { createClient } from 'redis';
+//
+// export const client = createClient({
+//   password: process.env.REDIS_PASSWORD,
+//   socket: {
+//     host: "127.0.0.1",
+//     port: parseInt(process.env.REDIS_PORT || '6379', 10)
+//   }
+// });
+
+// let redisClient = redis.createClient({
+//   legacyMode: true,
+//   socket: {
+//     port: 6379,
+//     host: '127.0.0.1'
+//   }
+// })
+
+// redisClient.connect().catch(console.error)
+import fastifyRedis from '@fastify/redis';
+fastify.register(fastifyRedis, {
+  host: '127.0.0.1',
+  password: "123",
+  port: 6379, // Redis port
+  family: 4   // 4 (IPv4) or 6 (IPv6)
+})
 
 fastify.get('/metrics', async (request, reply) => {
   const metrics = await promRegister.metrics();
