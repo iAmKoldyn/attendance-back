@@ -17,19 +17,21 @@
 - администрирование пользователей у админа
 
 ## Запуск Сервиса через Docker:
-   Из корневой директории запустите `npm run build `, после успешного билда, соберите Docker-контейнеры.
-   ```bash
-   docker-compose up -d
-   ```
+
+Из корневой директории запустите `npm run build `, после успешного билда, соберите Docker-контейнеры.
+
+```bash
+docker-compose up -d
+```
 
 1. **Ожидание Загрузки Docker**:
    Убедитесь, что все службы полностью функционируют, прежде чем продолжить.
 
 ## Просмотр метрик и Grafana
 
-1. **Подключение к  Grafana** по `http://localhost:3000` (default login: `admin` / `admin`).
+1. **Подключение к Grafana** по `http://localhost:3000` (default login: `admin` / `admin`).
 
-2. **Prometheus доступен по `http://localhost:9090`** 
+2. **Prometheus доступен по `http://localhost:9090`**
 
 3. **Добавление Prometheus как Data Source**: Сконфигурировать с использованием своего инстанса Prometheus и URL.
 
