@@ -36,32 +36,17 @@ export const getAllUsers = async () => {
   }
 };
 
-// export const getUserById = async (id: string) => {
-//   const end = dbOperationDurationUser.startTimer({ operation: 'read', entity: 'user' });
-//   try {
-//
-//       return await User.findOne(
-//           { userId: id },
-//           { _id: 0, __v: 0, refreshToken: false, password_hash: false, password: false }
-//       );
-//
-//   } finally {
-//     end();
-//   }
-// };
-
 export const getUserById = async (id: string) => {
   const end = dbOperationDurationUser.startTimer({ operation: 'read', entity: 'user' });
   try {
-
-    let user = fastify.redis.users.get(id)
-
+    console.log(id)
+    let user = await fastify.redis.get(id)
     if (!user) {
-      let user = await User.findOne(
+      user = await User.findOne(
           { userId: id },
           { _id: 0, __v: 0, refreshToken: false, password_hash: false, password: false }
       );
-      await fastify.redis['users'].set(id, JSON.stringify(user), "EX", 20)
+      await fastify.redis.set(id, user, 'EX', 60)
     }
 
     return user
@@ -87,6 +72,7 @@ export const updateUserById = async (id: string, body) => {
 
 export const deleteUserById = async (id: string) => {
   const end = dbOperationDurationUser.startTimer({ operation: 'delete', entity: 'user' });
+  await fastify.redis.del(id)
   const user = await User.findOne({ userId: id });
   if (!user) {
     end();

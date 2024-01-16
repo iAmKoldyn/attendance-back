@@ -1,20 +1,6 @@
 version: '3.8'
 
 services:
-  redis:
-    container_name: ${APP_NAME}-redis
-    image: redis:latest
-    restart: always
-    ports:
-      - "${REDIS_PORT}:6379"
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=6379
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    networks:
-      - shared_network
-
   attendance-db:
     env_file: ./.env
     image: mongo:4.4.23
@@ -36,7 +22,7 @@ services:
     build: .
     restart: always
     ports:
-      - "3002:3002"
+      - '3002:3002'
     environment:
       SIRIUS_X_ATTENDANCE_MONGO_HOST: host.docker.internal
     depends_on:
@@ -47,33 +33,41 @@ services:
       - shared_network
     command: npm run up:prod
 
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    networks:
+      - shared_network
+    restart: always
+
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus # Shared Volume
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.enable-lifecycle"
-      - "--storage.tsdb.min-block-duration=10m"
-      - "--storage.tsdb.max-block-duration=10m"
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.min-block-duration=10m'
+      - '--storage.tsdb.max-block-duration=10m'
     networks:
       - shared_network
 
   node_exporter:
     image: prom/node-exporter:latest
     ports:
-      - "9100:9100"
+      - '9100:9100'
     networks:
       - shared_network
 
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
