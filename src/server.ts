@@ -1,6 +1,7 @@
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
+import fastifyRedis from '@fastify/redis';
 import 'dotenv/config';
 import Fastify from 'fastify';
 import path from 'node:path';
@@ -23,16 +24,23 @@ import { meetingsRequestCounter, meetingsRequestErrors, meetingsRequestDuration 
 import { teachersRequestCounter, teachersRequestErrors, teachersRequestDuration } from './routes/teachers';
 import { userRequestCounter, userRequestErrors, userRequestDuration } from './routes/user';
 import { usersRequestCounter, usersRequestErrors, usersRequestDuration } from './routes/users';
-import { dbOperationDurationGroup } from './controllers/groupController';
+import { dbOperationDurationGroup, redisOperationDurationGroup } from './controllers/groupController';
 import { dbOperationDurationAuth } from './controllers/authController';
-import { dbOperationDurationAttending } from './controllers/attendingController';
-import { dbOperationDurationRole } from './controllers/roleController';
+import { dbOperationDurationAttending, redisOperationDurationAttending } from './controllers/attendingController';
+import { dbOperationDurationRole, redisOperationDurationRole } from './controllers/roleController';
 import { dbOperationDurationTeacher } from './controllers/teacherController';
-import { dbOperationDurationUser } from './controllers/userController';
-import { dbOperationDurationMeeting } from './controllers/meetingController';
+import { dbOperationDurationUser, redisOperationDurationUser } from './controllers/userController';
+import { dbOperationDurationMeeting, redisOperationDurationMeeting } from './controllers/meetingController';
 
 const fastify = Fastify({
-  logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true
+  logger: loggerConfig[process.env.SIRIUS_X_ATTENDANCE_PROJECT_STATUS] ?? true,
+  pluginTimeout: 20000
+});
+
+fastify.register(fastifyRedis, {
+  host: 'redis',
+  port: 6379,
+  family: 4
 });
 
 fastify.get('/metrics', async (_request, reply) => {
@@ -84,12 +92,17 @@ promRegister.registerMetric(usersRequestDuration);
 
 //controllers
 promRegister.registerMetric(dbOperationDurationAttending);
+promRegister.registerMetric(redisOperationDurationAttending);
 promRegister.registerMetric(dbOperationDurationAuth);
 promRegister.registerMetric(dbOperationDurationGroup);
+promRegister.registerMetric(redisOperationDurationGroup);
 promRegister.registerMetric(dbOperationDurationMeeting);
+promRegister.registerMetric(redisOperationDurationMeeting);
 promRegister.registerMetric(dbOperationDurationRole);
+promRegister.registerMetric(redisOperationDurationRole);
 promRegister.registerMetric(dbOperationDurationTeacher);
 promRegister.registerMetric(dbOperationDurationUser);
+promRegister.registerMetric(redisOperationDurationUser);
 
 fastify.register(fastifyJwt, {
   secret: authenticationConfig.secretKey,

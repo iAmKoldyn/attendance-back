@@ -84,6 +84,7 @@ export default async function (fastify): Promise<void> {
 
       try {
         const meetingId = request.params.id;
+
         const meeting = await getMeetingById(meetingId);
 
         if (!meeting) {
