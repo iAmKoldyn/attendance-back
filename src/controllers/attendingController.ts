@@ -1,5 +1,6 @@
 import Attending from '../models/attending';
 import { Histogram } from 'prom-client';
+import fastify from "../server";
 
 export const dbOperationDurationAttending = new Histogram({
   name: 'db_operation_duration_seconds_attending',
@@ -35,7 +36,13 @@ export const getAllAttendings = async () => {
 export const getAttendingById = async id => {
   const end = dbOperationDurationAttending.startTimer({ operation: 'read', entity: 'attending' });
   try {
-    return await Attending.findOne({ attendingId: id }, { _id: 0, __v: 0 });
+    let attending = await fastify.redis.get(id)
+    if (!attending) {
+      await Attending.findOne({ attendingId: id }, { _id: 0, __v: 0 });
+      await fastify.redis.set(id, attending, 'EX', 120)
+    }
+
+    return attending
   } finally {
     end();
   }
@@ -44,14 +51,17 @@ export const getAttendingById = async id => {
 export const updateAttendingById = async (id, body) => {
   const end = dbOperationDurationAttending.startTimer({ operation: 'update', entity: 'attending' });
 
-  const attending = await Attending.findOne({ attendingId: id });
+  let attending = await Attending.findOne({ attendingId: id });
   if (!attending) {
     end();
     return null;
   }
 
   try {
-    return await Attending.findByIdAndUpdate(attending._id, body, { new: true });
+    attending = await Attending.findByIdAndUpdate(attending._id, body, { new: true });
+    let attendingStr = JSON.stringify(attending, ['meeting', 'user', 'joined_at', 'attendingId'])
+    await fastify.redis.set(id, attendingStr, 'EX', 120)
+    return attending
   } finally {
     end();
   }
@@ -59,7 +69,7 @@ export const updateAttendingById = async (id, body) => {
 
 export const deleteAttendingById = async id => {
   const end = dbOperationDurationAttending.startTimer({ operation: 'delete', entity: 'attending' });
-
+  await fastify.redis.del(id)
   const attending = await Attending.findOne({ attendingId: id });
   if (!attending) {
     end();

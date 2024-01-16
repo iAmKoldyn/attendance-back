@@ -1,5 +1,6 @@
 import Group from '../models/group';
 import { Histogram } from 'prom-client';
+import fastify from "../server";
 
 export const dbOperationDurationGroup = new Histogram({
   name: 'db_operation_duration_seconds',
@@ -35,7 +36,12 @@ export const getAllGroups = async () => {
 export const getGroupById = async id => {
   const end = dbOperationDurationGroup.startTimer({ operation: 'read', entity: 'group' });
   try {
-    return await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
+    let group = await fastify.redis.get(id);
+    if (!group) {
+      group = await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
+      await fastify.redis.set(id, group, 'EX', 120);
+    }
+    return group;
   } finally {
     end();
   }
@@ -44,14 +50,17 @@ export const getGroupById = async id => {
 export const updateGroupById = async (id, body) => {
   const end = dbOperationDurationGroup.startTimer({ operation: 'update', entity: 'group' });
 
-  const group = await Group.findOne({ groupId: id });
+  let group = await Group.findOne({ groupId: id });
   if (!group) {
     end();
     return null;
   }
 
   try {
-    return await Group.findByIdAndUpdate(group._id, body, { new: true });
+    group = await Group.findByIdAndUpdate(group._id, body, { new: true });
+    let groupStr = JSON.stringify(group, ['name', 'meetings', 'users', 'groupId'])
+    await fastify.redis.set(id, groupStr, 'EX', 120)
+    return group
   } finally {
     end();
   }
@@ -59,7 +68,7 @@ export const updateGroupById = async (id, body) => {
 
 export const deleteGroupById = async id => {
   const end = dbOperationDurationGroup.startTimer({ operation: 'delete', entity: 'group' });
-
+  await fastify.redis.del(id)
   const group = await Group.findOne({ groupId: id });
   if (!group) {
     end();

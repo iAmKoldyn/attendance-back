@@ -39,17 +39,16 @@ export const getAllUsers = async () => {
 export const getUserById = async (id: string) => {
   const end = dbOperationDurationUser.startTimer({ operation: 'read', entity: 'user' });
   try {
-    console.log(id)
-    let user = await fastify.redis.get(id)
+    let user = await fastify.redis.get(id);
     if (!user) {
       user = await User.findOne(
           { userId: id },
           { _id: 0, __v: 0, refreshToken: false, password_hash: false, password: false }
       );
-      await fastify.redis.set(id, user, 'EX', 60)
+      await fastify.redis.set(id, user, 'EX', 120);
     }
 
-    return user
+    return user;
   } finally {
     end();
   }
@@ -57,14 +56,18 @@ export const getUserById = async (id: string) => {
 
 export const updateUserById = async (id: string, body) => {
   const end = dbOperationDurationUser.startTimer({ operation: 'update', entity: 'user' });
-  const user = await User.findOne({ userId: id });
+
+  let user = await User.findOne({ userId: id });
   if (!user) {
     end();
     return null;
   }
 
   try {
-    return await User.findByIdAndUpdate(user._id, body, { new: true });
+    user = await User.findByIdAndUpdate(user._id, body, { new: true });
+    let userStr = JSON.stringify(user, ['firstname', 'lastname', 'middlename', 'email', 'userId'])
+    await fastify.redis.set(id, userStr, 'EX', 120)
+    return user
   } finally {
     end();
   }

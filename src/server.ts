@@ -37,7 +37,6 @@ const fastify = Fastify({
   pluginTimeout: 20000
 });
 
-
 fastify.register(fastifyRedis, {
   host: 'redis',
   port: 6379,

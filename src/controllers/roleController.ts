@@ -1,5 +1,6 @@
 import Role from '../models/role';
 import { Histogram } from 'prom-client';
+import fastify from "../server";
 
 export const dbOperationDurationRole = new Histogram({
   name: 'db_operation_duration_seconds_role',
@@ -29,7 +30,13 @@ export const getAllRoles = async () => {
 export const getRoleById = async id => {
   const end = dbOperationDurationRole.startTimer({ operation: 'read', entity: 'role' });
   try {
-    return await Role.findById(id, { _id: 0, __v: 0 });
+    let role = await fastify.redis.get(id);
+    if (!role) {
+      role = await Role.findById(id, {_id: 0, __v: 0});
+      await fastify.redis.set(id, role, 'EX', 120);
+    }
+
+    return role;
   } finally {
     end();
   }
@@ -38,7 +45,10 @@ export const getRoleById = async id => {
 export const updateRoleById = async (id, body) => {
   const end = dbOperationDurationRole.startTimer({ operation: 'update', entity: 'role' });
   try {
-    return await Role.findByIdAndUpdate(id, body, { new: true });
+    let role = await Role.findByIdAndUpdate(id, body, { new: true });
+    let roleStr = JSON.stringify(role, ['title', 'slug', 'users', 'roleId'])
+    await fastify.redis.set(id, roleStr, 'EX', 120)
+    return role
   } finally {
     end();
   }
@@ -47,6 +57,7 @@ export const updateRoleById = async (id, body) => {
 export const deleteRoleById = async id => {
   const end = dbOperationDurationRole.startTimer({ operation: 'delete', entity: 'role' });
   try {
+    await fastify.redis.del(id)
     return await Role.findByIdAndRemove(id);
   } finally {
     end();
