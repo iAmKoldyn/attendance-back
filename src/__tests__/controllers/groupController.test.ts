@@ -1,10 +1,4 @@
-import {
-  createGroup,
-  getAllGroups,
-  getGroupById,
-  updateGroupById,
-  deleteGroupById
-} from '../../controllers/groupController';
+import { getAllGroups, getGroupById, updateGroupById, deleteGroupById } from '../../controllers/groupController';
 import Group from '../../models/group';
 
 jest.mock('../../models/group', () => ({

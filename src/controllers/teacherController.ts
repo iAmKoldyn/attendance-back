@@ -1,4 +1,4 @@
-import User from '../models/user';
+import User, { UserType } from '../models/user';
 import Role from '../models/role';
 import { Histogram } from 'prom-client';
 
@@ -16,7 +16,7 @@ type User = {
   password?: string;
 };
 
-export const getAllTeachers = async () => {
+export const getAllTeachers = async (): Promise<UserType[]> => {
   const end = dbOperationDurationTeacher.startTimer({ operation: 'readAll', entity: 'teacher' });
   try {
     const teacherRole = await Role.findOne({ slug: 'teacher' });

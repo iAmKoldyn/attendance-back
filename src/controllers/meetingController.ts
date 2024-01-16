@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongoose';
 import Meeting from '../models/meeting';
 import { Histogram } from 'prom-client';
 

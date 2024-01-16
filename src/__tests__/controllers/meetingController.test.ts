@@ -1,5 +1,4 @@
 import {
-  createMeeting,
   getAllMeetings,
   getMeetingById,
   updateMeetingById,

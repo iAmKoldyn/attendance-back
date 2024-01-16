@@ -28,118 +28,133 @@ export const attendingRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function(fastify) {
-  fastify.post('/', {
-    schema: {
-      body: createBodyJsonSchema
+export default async function (fastify): Promise<void> {
+  fastify.post(
+    '/',
+    {
+      schema: {
+        body: createBodyJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = attendingRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
+
+      try {
+        const joined_at = new Date().toISOString();
+        const user = await User.findOne({ userId: request.userId });
+        const meeting = await Meeting.findOne({ meetingId: request.body.meetingId });
+        const userId = user._id;
+        const meetingId = meeting._id;
+
+        createAttending({ joined_at: joined_at, user: userId, meeting: meetingId });
+        reply.status(201).send({ message: 'Created' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
+        attendingRequestErrors.inc({ endpoint: '/', method: 'POST' });
+        throw error;
+      } finally {
+        end();
+        attendingRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
+      }
     }
-  }, async (request, reply) => {
-    const end = attendingRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
+  );
 
-    try {
-      const joined_at = new Date().toISOString();
-      const user = await User.findOne({ userId: request.userId });
-      const meeting = await Meeting.findOne({ meetingId: request.body.meetingId });
-      const userId = user._id;
-      const meetingId = meeting._id;
+  fastify.get(
+    '/:id',
+    {
+      schema: {
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
-      createAttending({ joined_at: joined_at, user: userId, meeting: meetingId });
-      reply.status(201).send({ message: 'Created' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      attendingRequestErrors.inc({ endpoint: '/', method: 'POST' });
-      throw error;
-    } finally {
-      end();
-      attendingRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
-    }
-  });
+      try {
+        const attendingId = request.params.id;
+        const attending = await getAttendingById(attendingId);
 
-  fastify.get('/:id', {
-    schema: {
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
+        if (!attending) {
+          reply.status(404).send({ error: 'Attending not found' });
+          attendingRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
+          return;
+        }
 
-    try {
-      const attendingId = request.params.id;
-      const attending = await getAttendingById(attendingId);
-
-      if (!attending) {
-        reply.status(404).send({ error: 'Attending not found' });
+        reply.status(200).send(attending);
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         attendingRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
-        return;
+        throw error;
+      } finally {
+        end();
+        attendingRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send(attending);
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      attendingRequestErrors.inc({ endpoint: '/:id', method: 'GET' });
-      throw error;
-    } finally {
-      end();
-      attendingRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
     }
-  });
+  );
 
-  fastify.put('/:id', {
-    schema: {
-      body: updateBodyJsonSchema,
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
+  fastify.put(
+    '/:id',
+    {
+      schema: {
+        body: updateBodyJsonSchema,
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
-    try {
-      const attendingId = request.params.id;
-      const attendingBody = request.body;
+      try {
+        const attendingId = request.params.id;
+        const attendingBody = request.body;
 
-      const updatedAttending = await updateAttendingById(attendingId, attendingBody);
+        const updatedAttending = await updateAttendingById(attendingId, attendingBody);
 
-      if (!updatedAttending) {
-        reply.status(404).send({ error: 'Attending not found' });
+        if (!updatedAttending) {
+          reply.status(404).send({ error: 'Attending not found' });
+          attendingRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
+          return;
+        }
+
+        reply.status(200).send(updatedAttending);
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         attendingRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
+        throw error;
+      } finally {
+        end();
+        attendingRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send(updatedAttending);
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      attendingRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-      throw error;
-    } finally {
-      end();
-      attendingRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
     }
-  });
+  );
 
+  fastify.delete(
+    '/:id',
+    {
+      schema: {
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
-  fastify.delete('/:id', {
-    schema: {
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = attendingRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
+      try {
+        const attendingId = request.params.id;
+        const deletedAttending = await deleteAttendingById(attendingId);
 
-    try {
-      const attendingId = request.params.id;
-      const deletedAttending = await deleteAttendingById(attendingId);
+        if (!deletedAttending) {
+          reply.status(404).send({ error: 'Attending not found' });
+          attendingRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
+          return;
+        }
 
-      if (!deletedAttending) {
-        reply.status(404).send({ error: 'Attending not found' });
+        reply.status(200).send({ message: 'Deleted' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         attendingRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-        return;
+        throw error;
+      } finally {
+        end();
+        attendingRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send({ message: 'Deleted' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      attendingRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-      throw error;
-    } finally {
-      end();
-      attendingRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
     }
-  });
+  );
 }

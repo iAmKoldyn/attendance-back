@@ -27,47 +27,54 @@ export const groupRequestDuration = new Histogram({
   labelNames: ['endpoint', 'method']
 });
 
-export default async function(fastify) {
-  fastify.post('/', {
-    schema: {
-      body: createBodyJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = groupRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
-
-    try {
-      const validationErrors = validateGroupData(request.body);
-      const isNameTaken = await isNameAlreadyInUse(request.body.name);
-
-      if (validationErrors) {
-        reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
-        groupRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
+export default async function (fastify): Promise<void> {
+  fastify.post(
+    '/',
+    {
+      schema: {
+        body: createBodyJsonSchema
       }
+    },
+    async (request, reply) => {
+      const end = groupRequestDuration.startTimer({ endpoint: '/', method: 'POST' });
 
-      if (isNameTaken) {
-        reply.status(409).send({ error: 'Name is already in use' });
+      try {
+        const validationErrors = validateGroupData(request.body);
+        const isNameTaken = await isNameAlreadyInUse(request.body.name);
+
+        if (validationErrors) {
+          reply.status(400).send({ error: 'Invalid Data', details: validationErrors });
+          groupRequestErrors.inc({ endpoint: '/', method: 'POST' });
+          return;
+        }
+
+        if (isNameTaken) {
+          reply.status(409).send({ error: 'Name is already in use' });
+          groupRequestErrors.inc({ endpoint: '/', method: 'POST' });
+          return;
+        }
+
+        createGroup(request.body);
+        reply.status(201).send({ message: 'Created' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         groupRequestErrors.inc({ endpoint: '/', method: 'POST' });
-        return;
+        throw error;
+      } finally {
+        end();
+        groupRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
       }
-
-      createGroup(request.body);
-      reply.status(201).send({ message: 'Created' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      groupRequestErrors.inc({ endpoint: '/', method: 'POST' });
-      throw error;
-    } finally {
-      end();
-      groupRequestCounter.inc({ endpoint: '/', method: 'POST', status: reply.statusCode.toString() });
     }
-  });
+  );
 
-  fastify.get('/:id', {
+  fastify.get(
+    '/:id',
+    {
       schema: {
         params: routeParamsJsonSchema
       }
-    }, async (request, reply) => {
+    },
+    async (request, reply) => {
       const end = groupRequestDuration.startTimer({ endpoint: '/:id', method: 'GET' });
 
       try {
@@ -89,70 +96,79 @@ export default async function(fastify) {
         end();
         groupRequestCounter.inc({ endpoint: '/:id', method: 'GET', status: reply.statusCode.toString() });
       }
-    });
-
-  fastify.put('/:id', {
-    schema: {
-      body: updateBodyJsonSchema,
-      params: routeParamsJsonSchema
     }
-  }, async (request, reply) => {
-    const end = groupRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
+  );
 
-    try {
-      const groupId = request.params.id;
-      const groupBody = request.body;
-      const nameIsTaken = await isNameAlreadyInUse(request.body.name);
-
-      if (nameIsTaken) {
-        reply.status(409).send({ error: 'Name is already in use' });
-        groupRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
+  fastify.put(
+    '/:id',
+    {
+      schema: {
+        body: updateBodyJsonSchema,
+        params: routeParamsJsonSchema
       }
+    },
+    async (request, reply) => {
+      const end = groupRequestDuration.startTimer({ endpoint: '/:id', method: 'PUT' });
 
-      const updatedGroup = await updateGroupById(groupId, groupBody);
-      if (!updatedGroup) {
-        reply.status(404).send({ error: 'Group not found!!' });
+      try {
+        const groupId = request.params.id;
+        const groupBody = request.body;
+        const nameIsTaken = await isNameAlreadyInUse(request.body.name);
+
+        if (nameIsTaken) {
+          reply.status(409).send({ error: 'Name is already in use' });
+          groupRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
+          return;
+        }
+
+        const updatedGroup = await updateGroupById(groupId, groupBody);
+        if (!updatedGroup) {
+          reply.status(404).send({ error: 'Group not found!!' });
+          groupRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
+          return;
+        }
+
+        reply.status(200).send(updatedGroup);
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         groupRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-        return;
+        throw error;
+      } finally {
+        end();
+        groupRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send(updatedGroup);
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      groupRequestErrors.inc({ endpoint: '/:id', method: 'PUT' });
-      throw error;
-    } finally {
-      end();
-      groupRequestCounter.inc({ endpoint: '/:id', method: 'PUT', status: reply.statusCode.toString() });
     }
-  });
+  );
 
-  fastify.delete('/:id', {
-    schema: {
-      params: routeParamsJsonSchema
-    }
-  }, async (request, reply) => {
-    const end = groupRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
+  fastify.delete(
+    '/:id',
+    {
+      schema: {
+        params: routeParamsJsonSchema
+      }
+    },
+    async (request, reply) => {
+      const end = groupRequestDuration.startTimer({ endpoint: '/:id', method: 'DELETE' });
 
-    try {
-      const groupId = request.params.id;
-      const deletedGroup = await deleteGroupById(groupId);
+      try {
+        const groupId = request.params.id;
+        const deletedGroup = await deleteGroupById(groupId);
 
-      if (!deletedGroup) {
-        reply.status(404).send({ error: 'Group not found' });
+        if (!deletedGroup) {
+          reply.status(404).send({ error: 'Group not found' });
+          groupRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
+          return;
+        }
+
+        reply.status(200).send({ message: 'Deleted' });
+      } catch (error) {
+        reply.status(500).send({ error: 'Internal Server Error' });
         groupRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-        return;
+        throw error;
+      } finally {
+        end();
+        groupRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
       }
-
-      reply.status(200).send({ message: 'Deleted' });
-    } catch (error) {
-      reply.status(500).send({ error: 'Internal Server Error' });
-      groupRequestErrors.inc({ endpoint: '/:id', method: 'DELETE' });
-      throw error;
-    } finally {
-      end();
-      groupRequestCounter.inc({ endpoint: '/:id', method: 'DELETE', status: reply.statusCode.toString() });
     }
-  });
+  );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 
-const sum = (a, b) => {
+const sum = (a, b): Promise<void> => {
   return a + b;
 };
 

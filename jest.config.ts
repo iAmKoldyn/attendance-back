@@ -23,11 +23,7 @@ const config: Config = {
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  collectCoverageFrom: [
-    '**/src/**/*.ts',
-    '!./src/seed/seed.ts',
-    '!./src/configs/mongo/index.ts'
-  ],
+  collectCoverageFrom: ['**/src/**/*.ts', '!./src/seed/seed.ts', '!./src/configs/mongo/index.ts'],
 
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',

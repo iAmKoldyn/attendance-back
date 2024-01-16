@@ -6,7 +6,7 @@ export const updateBodyJsonSchema = {
     lastname: { type: 'string' },
     middlename: { type: 'string' },
     email: { type: 'string', minLength: 5 },
-    password: { type: 'string', minLength: 8 },
+    password: { type: 'string', minLength: 8 }
   }
 };
 
@@ -18,7 +18,7 @@ export const createBodyJsonSchema = {
     lastname: { type: 'string' },
     middlename: { type: 'string' },
     email: { type: 'string', minLength: 5 },
-    password: { type: 'string', minLength: 8 },
+    password: { type: 'string', minLength: 8 }
   }
 };
 
