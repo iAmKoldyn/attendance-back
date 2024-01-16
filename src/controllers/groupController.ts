@@ -1,10 +1,16 @@
 import Group from '../models/group';
 import { Histogram } from 'prom-client';
-import fastify from "../server";
+import fastify from '../server';
 
 export const dbOperationDurationGroup = new Histogram({
-  name: 'db_operation_duration_seconds',
-  help: 'Duration of database operations in seconds',
+  name: 'db_operation_duration_seconds_group_db',
+  help: 'Duration of database operations in seconds for groups',
+  labelNames: ['operation', 'entity']
+});
+
+export const redisOperationDurationGroup = new Histogram({
+  name: 'redis_operation_duration_seconds_group',
+  help: 'Duration of Redis operations in seconds for groups',
   labelNames: ['operation', 'entity']
 });
 
@@ -34,52 +40,51 @@ export const getAllGroups = async () => {
 };
 
 export const getGroupById = async id => {
-  const end = dbOperationDurationGroup.startTimer({ operation: 'read', entity: 'group' });
-  try {
-    let group = await fastify.redis.get(id);
-    if (!group) {
-      group = await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
-      await fastify.redis.set(id, group, 'EX', 120);
+  const endRedis = redisOperationDurationGroup.startTimer({ operation: 'read', entity: 'group' });
+  let group = await fastify.redis.get(id);
+  if (!group) {
+    endRedis();
+    const endDb = dbOperationDurationGroup.startTimer({ operation: 'read', entity: 'group' });
+    group = await Group.findOne({ groupId: id }, { _id: 0, __v: 0 });
+    if (group) {
+      await fastify.redis.set(id, JSON.stringify(group), 'EX', 120);
     }
-    return group;
-  } finally {
-    end();
+    endDb();
+  } else {
+    endRedis();
   }
+  return group;
 };
 
 export const updateGroupById = async (id, body) => {
-  const end = dbOperationDurationGroup.startTimer({ operation: 'update', entity: 'group' });
-
+  const endDb = dbOperationDurationGroup.startTimer({ operation: 'update', entity: 'group' });
   let group = await Group.findOne({ groupId: id });
   if (!group) {
-    end();
+    endDb();
     return null;
   }
-
-  try {
-    group = await Group.findByIdAndUpdate(group._id, body, { new: true });
-    let groupStr = JSON.stringify(group, ['name', 'meetings', 'users', 'groupId'])
-    await fastify.redis.set(id, groupStr, 'EX', 120)
-    return group
-  } finally {
-    end();
-  }
+  group = await Group.findByIdAndUpdate(group._id, body, { new: true });
+  const groupStr = JSON.stringify(group);
+  const endRedis = redisOperationDurationGroup.startTimer({ operation: 'update', entity: 'group' });
+  await fastify.redis.set(id, groupStr, 'EX', 120);
+  endDb();
+  endRedis();
+  return group;
 };
 
 export const deleteGroupById = async id => {
-  const end = dbOperationDurationGroup.startTimer({ operation: 'delete', entity: 'group' });
-  await fastify.redis.del(id)
+  const endRedis = redisOperationDurationGroup.startTimer({ operation: 'delete', entity: 'group' });
+  await fastify.redis.del(id);
+  endRedis();
+  const endDb = dbOperationDurationGroup.startTimer({ operation: 'delete', entity: 'group' });
   const group = await Group.findOne({ groupId: id });
   if (!group) {
-    end();
+    endDb();
     return null;
   }
-
-  try {
-    return await Group.findByIdAndRemove(group._id);
-  } finally {
-    end();
-  }
+  await Group.findByIdAndRemove(group._id);
+  endDb();
+  return group;
 };
 
 export const validateGroupData = groupData => {
