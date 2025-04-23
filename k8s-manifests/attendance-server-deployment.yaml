@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attendance-server
+  labels:
+    io.kompose.service: attendance-server
+  annotations:
+    kompose.cmd: >-
+      kompose convert -f docker-compose.yml --build none --push-image=false --volumes emptyDir -o k8s-manifests/
+    kompose.version: 1.31.2 (a92241f79)
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: attendance-server
+  template:
+    metadata:
+      labels:
+        io.kompose.network/shared-network: "true"
+        io.kompose.service: attendance-server
+      annotations:
+        kompose.cmd: >-
+          kompose convert -f docker-compose.yml --build none --push-image=false --volumes emptyDir -o k8s-manifests/
+        kompose.version: 1.31.2 (a92241f79)
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: attendance-server
+          image: attendance-server:local
+          imagePullPolicy: IfNotPresent
+          args:
+            - npm
+            - run
+            - up:prod
+          ports:
+            - containerPort: 3002
+              protocol: TCP
+          # Inherit all environment variables from the ConfigMap
+          envFrom:
+            - configMapRef:
+                name: attendance-env
+          # Explicit overrides for the connection URIs
+          env:
+            - name: MONGODB_URI
+              value: "mongodb://test:test@attendance-db:27017/attendance?authSource=admin"
+            - name: REDIS_URL
+              value: "redis://:123@redis:6379"

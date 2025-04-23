@@ -1,0 +1,19 @@
+apiVersion: v1
+data:
+  APP_NAME: attendance
+  REDIS_PASSWORD: "123"
+  REDIS_PORT: "6379"
+  SIRIUS_X_ATTENDANCE_DB_PORT: "27017"
+  SIRIUS_X_ATTENDANCE_MONGO_HOST: "attendance-db"
+  SIRIUS_X_ATTENDANCE_MONGO_PASSWORD: test
+  SIRIUS_X_ATTENDANCE_MONGO_USERNAME: test
+  SIRIUS_X_ATTENDANCE_PORT: "3002"
+  SIRIUS_X_ATTENDANCE_PROJECT_STATUS: ""
+  SIRIUS_X_ATTENDANCE_SECRET_KEY: ""
+  SIRIUS_X_MONGO_AUTHSOURCE: ""
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: attendance-db-attendance-env
+  name: attendance-env

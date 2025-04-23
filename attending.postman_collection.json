@@ -1,0 +1,529 @@
+{
+	"info": {
+		"_postman_id": "c5cdc11b-79c3-458b-9720-3ba5b6fa217e",
+		"name": "Attendance API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19627424",
+		"_collection_link": "https://www.postman.com/attendance-518451/workspace/sirius-x/collection/29850565-c5cdc11b-79c3-458b-9720-3ba5b6fa217e?action=share&source=collection_link&creator=19627424"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"lastname\": \"Doe\",\n    \"firstname\": \"John\",\n    \"middlename\": \"Smith\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["register"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "refreshToken",
+								"value": "{{refresh_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["refresh"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["users"]
+								}
+							}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/:id",
+							"host": ["{{base_url}}"],
+							"path": ["user", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"updated@example.com\",\n    \"lastname\": \"Updated\",\n    \"firstname\": \"Name\",\n    \"middlename\": \"Middle\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/:id",
+							"host": ["{{base_url}}"],
+							"path": ["user", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/:id",
+							"host": ["{{base_url}}"],
+							"path": ["user", ":id"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Groups",
+			"item": [
+				{
+					"name": "Get All Groups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/groups",
+							"host": ["{{base_url}}"],
+							"path": ["groups"]
+						}
+					}
+				},
+				{
+					"name": "Get Group by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/group/:id",
+							"host": ["{{base_url}}"],
+							"path": ["group", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Create Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Group\",\n    \"description\": \"Group Description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/group",
+							"host": ["{{base_url}}"],
+							"path": ["group"]
+						}
+					}
+				},
+				{
+					"name": "Update Group",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Group\",\n    \"description\": \"Updated Description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/group/:id",
+							"host": ["{{base_url}}"],
+							"path": ["group", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Delete Group",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/group/:id",
+							"host": ["{{base_url}}"],
+							"path": ["group", ":id"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Meetings",
+			"item": [
+				{
+					"name": "Get All Meetings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/meetings",
+							"host": ["{{base_url}}"],
+							"path": ["meetings"]
+						}
+					}
+				},
+				{
+					"name": "Get Meeting by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/meeting/:id",
+							"host": ["{{base_url}}"],
+							"path": ["meeting", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Create Meeting",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Meeting\",\n    \"description\": \"Meeting Description\",\n    \"startTime\": \"2024-04-22T10:00:00Z\",\n    \"endTime\": \"2024-04-22T11:00:00Z\",\n    \"groupId\": \"group_id_here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/meeting",
+							"host": ["{{base_url}}"],
+							"path": ["meeting"]
+						}
+					}
+				},
+				{
+					"name": "Update Meeting",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Meeting\",\n    \"description\": \"Updated Description\",\n    \"startTime\": \"2024-04-22T10:00:00Z\",\n    \"endTime\": \"2024-04-22T11:00:00Z\",\n    \"groupId\": \"group_id_here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/meeting/:id",
+							"host": ["{{base_url}}"],
+							"path": ["meeting", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Delete Meeting",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/meeting/:id",
+							"host": ["{{base_url}}"],
+							"path": ["meeting", ":id"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Attendance",
+			"item": [
+				{
+					"name": "Get All Attendances",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/attendings",
+							"host": ["{{base_url}}"],
+							"path": ["attendings"]
+						}
+					}
+				},
+				{
+					"name": "Get Attendance by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/attending/:id",
+							"host": ["{{base_url}}"],
+							"path": ["attending", ":id"]
+						}
+							}
+						},
+				{
+					"name": "Create Attendance",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user_id_here\",\n    \"meetingId\": \"meeting_id_here\",\n    \"status\": \"present\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/attending",
+							"host": ["{{base_url}}"],
+							"path": ["attending"]
+						}
+					}
+				},
+				{
+					"name": "Update Attendance",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"user_id_here\",\n    \"meetingId\": \"meeting_id_here\",\n    \"status\": \"absent\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/attending/:id",
+							"host": ["{{base_url}}"],
+							"path": ["attending", ":id"]
+						}
+					}
+				},
+				{
+					"name": "Delete Attendance",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/attending/:id",
+							"host": ["{{base_url}}"],
+							"path": ["attending", ":id"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Teachers",
+			"item": [
+				{
+					"name": "Get All Teachers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+								}
+						],
+						"url": {
+							"raw": "{{base_url}}/teachers",
+							"host": ["{{base_url}}"],
+							"path": ["teachers"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/hc",
+							"host": ["{{base_url}}"],
+							"path": ["hc"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3002",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "your_access_token_here",
+			"type": "string"
+					},
+		{
+			"key": "refresh_token",
+			"value": "your_refresh_token_here",
+			"type": "string"
+		}
+	]
+}

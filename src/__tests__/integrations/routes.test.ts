@@ -509,8 +509,8 @@ describe('Test routes', () => {
           url: '/meeting',
           body: {
             title: 'JS разработка',
-            timeFrom: new Date(2023, 9, 22, 18, 30, 0),
-            timeTo: new Date(2023, 9, 22, 20, 0, 0),
+            timeFrom: new Date(2025, 4, 22, 18, 30, 0),
+            timeTo: new Date(2025, 4, 22, 20, 0, 0),
             authorId: authorId,
             groupId: groupId
           }
@@ -543,8 +543,8 @@ describe('Test routes', () => {
         if (!meeting) {
           meeting = new Meeting({
             title: 'JS разработка 2',
-            timeFrom: new Date(2023, 9, 22, 18, 30, 0),
-            timeTo: new Date(2023, 9, 22, 20, 0, 0),
+            timeFrom: new Date(2025, 4, 22, 18, 30, 0),
+            timeTo: new Date(2025, 4, 22, 20, 0, 0),
             authorId: authorId,
             groupId: groupId
           });
@@ -558,8 +558,8 @@ describe('Test routes', () => {
           url: `/meeting/${meeting.meetingId}`,
           body: {
             title: 'JS разработка 20',
-            timeFrom: new Date(2023, 9, 22, 18, 30, 0),
-            timeTo: new Date(2023, 9, 22, 20, 0, 0),
+            timeFrom: new Date(2025, 9, 22, 18, 30, 0),
+            timeTo: new Date(2025, 9, 22, 20, 0, 0),
             authorId: authorId,
             groupId: groupId
           }
@@ -593,8 +593,8 @@ describe('Test routes', () => {
         if (!meeting) {
           meeting = new Meeting({
             title: 'JS разработка 3',
-            timeFrom: new Date(2023, 9, 22, 18, 30, 0),
-            timeTo: new Date(2023, 9, 22, 20, 0, 0),
+            timeFrom: new Date(2025, 4, 22, 18, 30, 0),
+            timeTo: new Date(2025, 4, 22, 20, 0, 0),
             authorId: authorId,
             groupId: groupId
           });

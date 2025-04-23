@@ -5,20 +5,20 @@ import Attending from '../models/attending';
 import Role from '../models/role';
 
 const seed = async (fastify): Promise<void> => {
-  const users = await User.find({ firstname: 'Astan' });
+  const users = await User.find({ firstname: 'Ivan' });
   if (users.length === 0) {
     const user1 = new User({
-      firstname: 'Astan',
-      lastname: 'Pataraya',
-      middlename: 'Gennad',
+      firstname: 'Ivan',
+      lastname: 'Ivanov',
+      middlename: 'Ivanovich',
       password: 'qwerty',
-      email: 'ag_pat'
+      email: 'ivan_ivanov'
     });
     await user1.save();
     const user2 = new User({
       firstname: 'Alexander',
       lastname: 'Zagar',
-      middlename: 'Андреевич',
+      middlename: 'Andreevich',
       password: 'qwerty1',
       email: 'alex_zagar'
     });
@@ -78,16 +78,16 @@ const seed = async (fastify): Promise<void> => {
 
     const meeting1 = new Meeting({
       title: 'JS разработка',
-      timeFrom: new Date(2023, 9, 22, 18, 30, 0),
-      timeTo: new Date(2023, 9, 22, 20, 0, 0),
+      timeFrom: new Date(2025, 4, 22, 18, 30, 0),
+      timeTo: new Date(2025, 4, 22, 20, 0, 0),
       teachers: teacher,
       groups: [group]
     });
     await meeting1.save();
     const meeting2 = new Meeting({
       title: 'Как писать код красиво',
-      timeFrom: new Date(2023, 11, 1, 6, 30, 0),
-      timeTo: new Date(2023, 11, 1, 9, 0, 0),
+      timeFrom: new Date(2025, 4, 22, 18, 30, 0),
+      timeTo: new Date(2025, 4, 22, 20, 0, 0),
       teachers: teacher,
       groups: [group]
     });
@@ -97,13 +97,13 @@ const seed = async (fastify): Promise<void> => {
     const attendance1 = new Attending({
       meeting: meeting1,
       user: user1,
-      joined_at: new Date(2023, 9, 22, 18, 30, 10)
+      joined_at: new Date(2025, 4, 22, 18, 30, 10)
     });
     await attendance1.save();
     const attendance2 = new Attending({
       meeting: meeting1,
       user: user2,
-      joined_at: new Date(2023, 9, 22, 18, 35, 21)
+      joined_at: new Date(2025, 4, 22, 18, 35, 21)
     });
     await attendance2.save();
     fastify.log.info('attendances are created');

@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 
 services:
   attendance-db:
@@ -71,12 +71,19 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     networks:
       - shared_network
+    depends_on:
+      - prometheus
 
 volumes:
   sirius_volume:
   prometheus-data: # Definition for the shared volume
+  grafana-data: # Grafana data persistence
 
 networks:
   shared_network:

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  labels:
+    io.kompose.service: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: prometheus
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/shared-network: "true"
+        io.kompose.service: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --web.enable-lifecycle
+            - --storage.tsdb.min-block-duration=10m
+            - --storage.tsdb.max-block-duration=10m
+          ports:
+            - containerPort: 9090
+              protocol: TCP
+          volumeMounts:
+            # 1) Mount your real prometheus.yml from the ConfigMap
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+            # 2) Persist the TSDB into an emptyDir (swap for a PVC in prod)
+            - name: prometheus-data
+              mountPath: /prometheus
+      restartPolicy: Always
+      volumes:
+        # ConfigMap volume for prometheus.yml
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        # emptyDir for TSDB
+        - name: prometheus-data
+          emptyDir: {}

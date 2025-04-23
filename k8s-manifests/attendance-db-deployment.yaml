@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml --build none --push-image=false --volumes emptyDir -o k8s-manifests/
+    kompose.version: 1.31.2 (a92241f79)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: attendance-db
+  name: attendance-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: attendance-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml --build none --push-image=false --volumes emptyDir -o k8s-manifests/
+        kompose.version: 1.31.2 (a92241f79)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/shared-network: "true"
+        io.kompose.service: attendance-db
+    spec:
+      containers:
+        - env:
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: APP_NAME
+                  name: attendance-env
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "test"
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "test"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIS_PASSWORD
+                  name: attendance-env
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIS_PORT
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_DB_PORT
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_MONGO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_MONGO_HOST
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_MONGO_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_MONGO_PASSWORD
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_MONGO_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_MONGO_USERNAME
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_PORT
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_PROJECT_STATUS
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_PROJECT_STATUS
+                  name: attendance-env
+            - name: SIRIUS_X_ATTENDANCE_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_ATTENDANCE_SECRET_KEY
+                  name: attendance-env
+            - name: SIRIUS_X_MONGO_AUTHSOURCE
+              valueFrom:
+                configMapKeyRef:
+                  key: SIRIUS_X_MONGO_AUTHSOURCE
+                  name: attendance-env
+          image: mongo:4.4.23
+          name: attendance-db
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          args:
+            - --bind_ip
+            - 0.0.0.0
+          resources: {}
+          volumeMounts:
+            - mountPath: /data/db
+              name: sirius-volume
+      restartPolicy: Always
+      volumes:
+        - emptyDir: {}
+          name: sirius-volume
+status: {}
