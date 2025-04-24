@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "attendance-chart.fullname" . }}
+  labels: {{- include "attendance-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{- include "attendance-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "attendance-chart.labels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.port }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:        # фикс «unknown field podSecurityContext»
+        fsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+        args:
+{{- range .Values.args }}
+          - {{ . | quote }}
+{{- end }}
+
+        env:
+{{- range $k,$v := .Values.env }}
+          - name: {{ $k }}
+            value: {{ $v | quote }}
+{{- end }}
+
+        ports:
+          - name: http
+            containerPort: {{ .Values.service.port }}
+
+        livenessProbe:
+          httpGet: { path: /metrics, port: http }
+          initialDelaySeconds: 40
+          periodSeconds: 20
+          timeoutSeconds: 5
+
+        readinessProbe:
+          httpGet: { path: /metrics, port: http }
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5

@@ -1,0 +1,26 @@
+{{- if .Values.tests.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "attendance-chart.fullname" . }}-metrics-test"
+  labels:
+    {{- include "attendance-chart.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: test
+    # старый pod стираем перед запуском нового,
+    # успешный — сохраняем (Helm успеет снять логи)
+    helm.sh/hook-delete-policy: before-hook-creation,hook-failed
+spec:
+  restartPolicy: Never
+  containers:
+    - name: curl
+      image: {{ .Values.tests.image | quote }}
+      command: ["sh", "-c"]
+      args:
+        - >
+          echo "⏳ Probing /metrics …" &&
+          curl -fsSL --max-time {{ .Values.tests.timeoutSeconds }}
+          http://{{ include "attendance-chart.fullname" . }}:{{ .Values.service.port }}/metrics |
+          grep -q '^# HELP' &&
+          echo "✅  Metrics endpoint healthy"
+{{- end }}

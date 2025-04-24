@@ -1,0 +1,30 @@
+{{/*
+NOTES.txt
+*/}}
+
+✔ Deployment succeeded!
+
+Run a light-weight metrics check at any time:
+
+  helm test {{ .Release.Name }} --logs
+====================================================
+🎉  Attendance успешно установлен!
+
+🔗  Сервис:
+    kubectl port-forward svc/{{ include "attendance-chart.fullname" . }} \
+        {{ .Values.service.port }}:{{ .Values.service.port }} &
+
+    API  → http://localhost:{{ .Values.service.port }}
+    Metrics → http://localhost:{{ .Values.service.port }}/metrics
+
+🩺  Проверка здоровья:
+    kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+    kubectl logs -f deploy/{{ include "attendance-chart.fullname" . }}
+
+📦  MongoDB:
+    svc  : {{ .Values.env.SIRIUS_X_ATTENDANCE_MONGO_HOST }}:{{ .Values.env.SIRIUS_X_ATTENDANCE_DB_PORT }}
+    admin: {{ .Values.env.SIRIUS_X_ATTENDANCE_MONGO_USERNAME }}/{{ .Values.env.SIRIUS_X_ATTENDANCE_MONGO_PASSWORD }}
+
+🚀  Удалить тестовый pod:
+    kubectl delete pod busy --ignore-not-found
+====================================================

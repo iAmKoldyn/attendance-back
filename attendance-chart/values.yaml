@@ -1,0 +1,43 @@
+replicaCount: 1
+
+image:
+  repository: attendance-server   # образ уже собран в Minikube
+  tag: local
+  pullPolicy: IfNotPresent
+
+args:                       # поднимаем лимит и запускаем npm-скрипт
+  - sh
+  - -c
+  - "ulimit -n 1048576 && npm run up:prod"
+
+service:
+  type: ClusterIP
+  port: 3002                # используется probes и порт-форвардом
+
+# --- обязательные переменные для строки подключения ---
+env:
+  SIRIUS_X_ATTENDANCE_MONGO_USERNAME: "test"
+  SIRIUS_X_ATTENDANCE_MONGO_PASSWORD: "test"
+  SIRIUS_X_ATTENDANCE_MONGO_HOST: "attendance-db.default.svc.cluster.local"
+  SIRIUS_X_ATTENDANCE_DB_PORT: "27017"
+  SIRIUS_X_MONGO_AUTHSOURCE: "admin"
+  REDIS_URL: "redis://:123@redis:6379"
+
+  DISABLE_AUTH_FOR_HEALTHCHECK: "true"
+  NODE_ENV: "production"
+
+# probes на открытый энд-поинт, чтобы не требовать JWT
+livenessProbe:
+  httpGet: { path: /metrics, port: http }
+  initialDelaySeconds: 40
+  periodSeconds: 20
+readinessProbe:
+  httpGet: { path: /metrics, port: http }
+  initialDelaySeconds: 20
+  periodSeconds: 10
+
+# values.yaml
+tests:
+  enabled: true        # ← turn the hook on / off
+  image: curlimages/curl:8.7.1   # tiny image that has curl
+  timeoutSeconds: 10             # fail fast if the service is down
